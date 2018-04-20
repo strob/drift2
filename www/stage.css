@@ -3,6 +3,7 @@
 }
 body {
     font-family: Arial, sans;
+    background-color: #ECEFF1;
 }
 
 .listitem {
@@ -10,18 +11,51 @@ body {
     height: 100px;
     border: 1px solid black;
     margin-top: 10px;
+    cursor: pointer;
+    text-align: center;
 }
 .listitem.upload {
     border: 1px dashed #999;
-    text-align: center;
     padding: 20px;
     font-weight: bold;
+    cursor: inherit;
+}
+.listitem.pending {
+    background-color: #ECEFF1;
+    color: #90A4AE;
+    border: 1px dashed #999;
+    cursor: inherit;
+    height: 200px;
+}
+.paste {
+    font-style: italic;
+    margin: 5px;
+    margin-top: 15px;
 }
 .listitem.upload.drag {
     background-color: yellow;
 }
 .listitem input {
     display: block;
+}
+
+.ptext {
+    width: 50%;
+    height: 80px;
+}
+
+.listitem .title {
+    text-align: center;
+    font-weight: bold;
+}
+.listitem.ready {
+    border-radius: 8px;
+    background-color: white;
+}
+.listitem.ready .title {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 15px;
 }
 
 .paragraph {

@@ -156,17 +156,27 @@ function render_doclist(root) {
     // XXX: preload list of docs
     get_docs()
         .forEach((doc) => {
+
+            var doc_has_everything = doc.path && doc.transcript;
+            
             var docel = new PAL.Element("div", {
                 parent: root,
                 id: "item-" + doc.id,
-                classes: ['listitem'],
-                text: doc.title,
+                classes: ['listitem', doc_has_everything ? 'ready' : 'pending'],
                 events: {
                     onclick: () => {
-                        window.location.hash = doc.id;
+                        if(doc.path && doc.transcript) {
+                            window.location.hash = doc.id;
+                        }
                     }
                 }
             });
+
+            new PAL.Element("div", {
+                id: "title-" + doc.id,
+                classes: ['title'],
+                text: doc.title,
+                parent: docel});
 
             if(doc.upload_status && !doc.path) {
                 // Show progress
@@ -200,21 +210,34 @@ function render_doclist(root) {
                     }
                 });
             }
-            if(true) {// !doc.transcript) {
+            if(!doc.transcript) {
                 render_paste_transcript(docel, doc.id);
             }
         });
 }
 
 function render_paste_transcript(root, docid) {
+
+    new PAL.Element("div", {
+        parent: root,
+        id: "ptrans-" + docid,
+        classes: ['paste'],
+        text: "paste in a transcript to continue"
+    });
+    
     T.transpastes[docid] = new PAL.Element("textarea", {
         parent: root,
         id: 'tscript-' + docid,
+        classes: ['ptext'],
         events: {
             onclick: (ev) => {
                 ev.stopPropagation();
             }
         }
+    });
+    new PAL.Element("br", {
+        id: 'br-' + docid,
+        parent: root
     });
 
     new PAL.Element("button", {
@@ -443,6 +466,9 @@ function render_doc_paragraph(root) {
 function place_underline() {
     // see if we have a word intersection
 
+    if(!T.cur_align) {
+        return;
+    }
     T.cur_align.words
         .forEach((wd, wd_idx) => {
             if(wd.start <= T.cur_t && wd.end >= T.cur_t) {
@@ -492,6 +518,9 @@ function blit_graph_can() {
 
     $can.setAttribute('width', w);
     $can.setAttribute('height', h*1.25);
+    // $can.setAttribute('width', w);
+    // $can.setAttribute('height', h*1.25);
+
 
     var ctx = $can.getContext('2d');
 
@@ -532,31 +561,33 @@ function blit_graph_can() {
     var wd_start_y = pitch2y(75, h);
     
     // Draw in-view words, in-time
-    T.cur_align.words.forEach((wd) => {
-        if(!wd.end || wd.start >= end || wd.end <= start) {
-            return;
-        }
+    if(T.cur_align) {
+        T.cur_align.words.forEach((wd) => {
+            if(!wd.end || wd.start >= end || wd.end <= start) {
+                return;
+            }
 
-        var x = w * ((wd.start - start) / (end-start));
+            var x = w * ((wd.start - start) / (end-start));
 
-        ctx.fillStyle = "#263238";
-        ctx.font = "14pt Arial";
-        ctx.fillText(wd.word, x, wd_start_y)
+            ctx.fillStyle = "#263238";
+            ctx.font = "14pt Arial";
+            ctx.fillText(wd.word, x, wd_start_y)
 
-        wd.phones.forEach((ph) => {
+            wd.phones.forEach((ph) => {
 
-            ctx.fillStyle = "#B0BEC5";
-            ctx.font = "10pt Arial";
-            ctx.fillText(ph.phone.split("_")[0], x, wd_start_y+20)
+                ctx.fillStyle = "#B0BEC5";
+                ctx.font = "10pt Arial";
+                ctx.fillText(ph.phone.split("_")[0], x, wd_start_y+20)
 
-            var ph_w = w * (ph.duration / (end-start));
+                var ph_w = w * (ph.duration / (end-start));
 
-            ctx.fillRect(x, wd_start_y+5, ph_w, 2);
+                ctx.fillRect(x, wd_start_y+5, ph_w, 2);
+                
+                x += ph_w;
+            });
             
-            x += ph_w;
-        });
-        
-    })
+        })
+    }
 
     // ...Finally, a playhead
     ctx.fillStyle = "#E85C41";
@@ -601,7 +632,7 @@ function blit_wd_can() {
 }
 
 function render_waveform(ctx, w, rect, p_h) {
-    if(!w.end) {
+    if(!w.end || !T.cur_pitch) {
         return;
     }
     
@@ -741,6 +772,10 @@ window.onhashchange = () => {
     if(docid in T.docs) {
         T.cur_doc = docid;
         setup_doc();
+
+
+        T.ticking = T.cur_doc;
+        tick();
     }
     else if(docid) {
         window.location.hash = "";
@@ -756,7 +791,10 @@ window.onhashchange = () => {
 }
 
 function tick() {
-    T.ticking = true;
+    if(T.ticking != T.cur_doc) {
+        T.ticking = false;
+        return;
+    }
 
     if(T.audio_el && T.audio_el.$el) {
         var t = T.audio_el.$el.currentTime;
@@ -770,10 +808,6 @@ function tick() {
     }
 
     window.requestAnimationFrame(tick);
-}
-
-if(!T.ticking) {
-    tick();
 }
 
 render();

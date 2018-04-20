@@ -5,6 +5,7 @@ import glob
 import os
 
 from twisted.web.resource import Resource
+from twisted.web.static import File
 
 def get_ffmpeg():
     # XXX: Check if bundled
@@ -32,5 +33,8 @@ for dbpath in glob.glob(os.path.join(get_local(), 'doc', '[0-9]*')):
     key = dbpath.split('/')[-1]
     dbs[key] = Babysteps(dbpath)
     docroot.putChild(key, dbs[key])
+
+# Serve attachments
+root.putChild("media", File(os.path.join(get_local(), '_attachments')))
 
 drift2.serve('stage.py', globals(), root=root)

@@ -23,3 +23,24 @@ body {
 .listitem input {
     display: block;
 }
+
+.paragraph {
+    position: relative;
+    line-height: 2em;
+    font-size: 14pt;
+    border-right: 1px solid black;
+    letter-spacing: 2;
+}
+
+#wdcan {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* /\* NIGHT MODE! *\/ */
+/* body { */
+/*     background-color: black; */
+/*     color: rgb(0,255,0); */
+/* } */

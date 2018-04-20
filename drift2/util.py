@@ -7,7 +7,6 @@ from twisted.web.server import NOT_DONE_YET
 from autobahn.twisted.websocket import WebSocketServerProtocol, \
                                        WebSocketServerFactory
 from autobahn.twisted.resource import WebSocketResource
-from autobahn.twisted.resource import WebSocketResource
 
 from watchdog.observers import Observer
 import hashlib
@@ -25,7 +24,7 @@ class Get(Resource):
         Resource.__init__(self)
 
     def render_GET(self, req):
-        return self._fn()
+        return json.dumps(self._fn())
 
 class GetArgs(Resource):
     # TODO: make async (?)

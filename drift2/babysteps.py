@@ -40,7 +40,7 @@ class Babysteps:
                 doc[change['key']] = change['val']
                 #self.db.setdefault(change['id'], {})[change['key']] = change['val']
             else:
-                doc = change['val']
+                doc.update(change['val'])
                 #self.db[change['id']] = change['val']
             self.db[change['id']] = doc
 

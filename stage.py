@@ -3,7 +3,7 @@ import random
 import tempfile
 import subprocess
 
-from drift2.util import Babysteps, attach, bschange, PostJson
+from drift2.util import Get
 
 def create(cmd):
     docid = cmd['id']
@@ -77,3 +77,47 @@ def pitch(cmd):
     return {"pitch": pitchhash}
 
 root.putChild("_pitch", PostJson(pitch, async=True))
+
+def list_docs():
+    # XXX: Only expose this within certain configurations (ie. not in a deployment)
+    return dict([(id, get_meta(id)) for id in dbs.keys()])
+
+root.putChild("_list_docs.json", Get(list_docs))
+
+def align(cmd):
+
+    meta = get_meta(cmd['id'])
+
+    media = os.path.join(get_local(), '_attachments', meta['path'])
+    transcript = os.path.join(get_local(), '_attachments', meta['transcript'])
+    
+    with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as fp:
+        # XXX: Check if Gentle is running
+
+        url = 'http://localhost:8765/transcriptions?async=false'
+
+        t_opts = []
+        if transcript:
+            t_opts = ['-F', 'transcript=<%s' % (transcript)]
+            # Adding disfluencies may be unreliable...
+            # url += '&disfluency=true'
+
+        # XXX: can I count on `curl` on os x? I think so?
+        subprocess.call(['curl',
+                '-o', fp.name,
+                '-X', 'POST',
+                '-F', 'audio=@%s' % (media)] + t_opts + [url])
+
+    alignhash = attach(fp.name)
+
+    bschange(dbs[cmd['id']], {
+        "type": "set",
+        "id": "meta",
+        "key": "align",
+        "val": alignhash
+        })
+    
+    return {"align": alignhash}
+    
+
+root.putChild("_align", PostJson(align, async=True))

@@ -4,13 +4,19 @@ var FARM = FARM || {};
 
 (function($) {
 
+    $.get = function(url, cb) {
+	      var xhr = new XMLHttpRequest();
+	      xhr.open("GET", url, true);
+	      xhr.onload = function() {
+	          cb(this.responseText);
+	      }
+	      xhr.send();
+    }
+
     $.get_json = function(url, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", url, true);
-	xhr.onload = function() {
-	    cb(JSON.parse(this.responseText));
-	}
-	xhr.send();
+        $.get(url, (ret) => {
+            cb(JSON.parse(ret));
+        });
     }
 
     $.get_json_args = function(url, data, cb) {
@@ -23,12 +29,12 @@ var FARM = FARM || {};
     
 
     $.post_json = function(url, data, cb) {
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", url, true);
-	xhr.onload = function() {
-	    cb(JSON.parse(this.responseText));
-	}
-	xhr.send(JSON.stringify(data));
+	      var xhr = new XMLHttpRequest();
+	      xhr.open("POST", url, true);
+	      xhr.onload = function() {
+	          cb(JSON.parse(this.responseText));
+	      }
+	      xhr.send(JSON.stringify(data));
     }
 
     

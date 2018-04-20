@@ -28,7 +28,7 @@ body {
     position: relative;
     line-height: 2em;
     font-size: 14pt;
-    border-right: 1px solid black;
+    /* border-right: 1px solid black; */
     letter-spacing: 2;
     width: 50%;
     color: #263238;
@@ -42,15 +42,35 @@ body {
 }
 
 #graph {
-    position: absolute;
+    position: fixed;
     z-index: 2;
-    pointer-events: none;
-    top: 0;
+    top: 25%;
     left: 50%;
 }
 
 audio {
     width: 100%;
+}
+
+#zoom {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 200px;
+    height: 20px;
+    background-color: #263238;
+}
+#zoom-status {
+    height: 100%;
+    background-color: #FEDE88;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#zoom-text {
+    position: absolute;
+    top: -12px;
+    font-size: 8pt;
 }
 
 /* /\* NIGHT MODE! *\/ */

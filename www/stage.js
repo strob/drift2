@@ -310,6 +310,52 @@ function render_doc(root) {
     });
 
     render_doc_paragraph(para_el);
+
+    // Render zoom slider
+    var zoom_box = new PAL.Element("div", {
+        id: "zoom",
+        parent: root,
+        events: {
+            onmousedown: function(ev) {
+                var px = (ev.clientX - this.offsetLeft) / this.clientWidth;
+                T.cur_zoom = (1-px);
+                blit_graph_can();
+
+                (function($el) {
+                    window.onmousemove = (ev) => {
+                        ev.preventDefault();
+
+                        var px = (ev.clientX - $el.offsetLeft) / $el.clientWidth;
+                        px = Math.max(0, Math.min(1, px));
+                        T.cur_zoom = (1-px);
+                        //blit_graph_can();
+                        render();
+
+                    };
+                })(this);
+
+                window.onmouseup = (ev) => {
+                    ev.preventDefault();
+                    window.onmousemove = null;
+                    render();
+                }
+            }
+        }
+    });
+
+    new PAL.Element("div", {
+        parent: zoom_box,
+        id: "zoom-text",
+        text: 'zoom'
+    });
+
+    new PAL.Element("div", {
+        parent: zoom_box,
+        id: "zoom-status",
+        styles: {
+            width: "" + Math.round(100*((1-T.cur_zoom)||0.5)) + "%"
+        }
+    });
 }
 
 function render_doc_graph(root) {
@@ -357,7 +403,7 @@ function render_doc_paragraph(root) {
             new PAL.Element("span", {
                 id: "gap-" + wd_idx,
                 parent: cur_p,
-                text: gap_txt
+                text: gap_txt,
             })
         }
 
@@ -365,7 +411,12 @@ function render_doc_paragraph(root) {
             T.wd_els[wd_idx] = new PAL.Element("span", {
                 id: "wd-" + wd_idx,
                 text: wd.word,
-                parent: cur_p
+                parent: cur_p,
+                events: {
+                    onclick: () => {
+                        T.audio_el.$el.currentTime = wd.start;
+                    }
+                }
             });
 
             offset_idx = wd.endOffset;
@@ -407,18 +458,49 @@ function blit_graph_can() {
     var $can = T.graph_can.$el;
 
     var w = document.body.clientWidth/2;
-    var h = document.body.clientHeight;
+    var h = document.body.clientHeight/2;
 
     $can.setAttribute('width', w);
-    $can.setAttribute('height', h);
+    $can.setAttribute('height', h*1.25);
 
     var ctx = $can.getContext('2d');
 
-    var start = 0;
-    var end = 5;
+    var nsecs = 0.1 + (T.cur_zoom||0.5)*30;
 
-    render_waveform(ctx, {start:start, end:end}, {left: 0, top: 0, width: w, height: h}, h/2);
+    var cur_t = T.cur_t || T.audio_el.$el.currentTime || 0;
 
+    var start = Math.max(0, cur_t - nsecs/2);
+    var end = start+nsecs;
+
+    render_waveform(ctx, {start:start, end:end}, {left: 0, top: 0, width: w, height: h}, h);
+
+    // Draw axes
+    var y_axes = [50, 100, 150, 200, 250, 300, 350];
+    y_axes.forEach((yval) => {
+        var y_px = pitch2y(yval, h);
+
+        ctx.fillStyle = "#CFD8DC";
+        ctx.fillRect(0, y_px, w, 1);
+
+        ctx.fillStyle = "#90A4AE";        
+        ctx.fillText("" + yval + "Hz", 0, y_px-1);
+    });
+
+    var graph_end_y = pitch2y(50, h);
+
+    for(var t=Math.ceil(start); t<Math.ceil(end); t++) {
+
+        var x_px = w * ((t-start) / (end-start));
+        
+        ctx.fillStyle = "#CFD8DC";
+        ctx.fillRect(x_px, 0, 1, graph_end_y);
+
+        ctx.fillStyle = "#90A4AE";        
+        ctx.fillText("" + t + "s", x_px-5, graph_end_y+10);
+    }
+
+    var wd_start_y = pitch2y(75, h);
+    
     // Draw in-view words, in-time
     T.cur_align.words.forEach((wd) => {
         if(!wd.end || wd.start >= end || wd.end <= start) {
@@ -429,22 +511,27 @@ function blit_graph_can() {
 
         ctx.fillStyle = "#263238";
         ctx.font = "14pt Arial";
-        ctx.fillText(wd.word, x, h/2)
+        ctx.fillText(wd.word, x, wd_start_y)
 
         wd.phones.forEach((ph) => {
 
             ctx.fillStyle = "#B0BEC5";
             ctx.font = "10pt Arial";
-            ctx.fillText(ph.phone.split("_")[0], x, h/2+20)
+            ctx.fillText(ph.phone.split("_")[0], x, wd_start_y+20)
 
             var ph_w = w * (ph.duration / (end-start));
 
-            ctx.fillRect(x, h/2+5, ph_w, 2);
+            ctx.fillRect(x, wd_start_y+5, ph_w, 2);
             
             x += ph_w;
         });
         
     })
+
+    // ...Finally, a playhead
+    //ctx.fillStyle = "#E85C41";
+    ctx.fillStyle = "red";
+    ctx.fillRect(w * ((cur_t-start)/(end-start)), 0, 1, graph_end_y);
 }
 
 function blit_wd_can() {
@@ -507,7 +594,7 @@ function render_waveform(ctx, w, rect, p_h) {
     // }
     // ctx.fill();
     
-    ctx.beginPath();
+    // ctx.beginPath();
     // Draw pitch trace
     ctx.strokeStyle = "#449A88";
     ctx.lineWidth = 1;
@@ -515,15 +602,34 @@ function render_waveform(ctx, w, rect, p_h) {
     var offset = 0;
     while(!T.cur_pitch[st_idx+offset]) {
         offset += 1
-    }
-
-    ctx.moveTo(x + offset*step, y + y_off + pitch2y(T.cur_pitch[st_idx+offset], p_h));
-    for(var i=st_idx+1; i<=end_idx; i++) {
-        if(T.cur_pitch[i]) {
-            ctx.lineTo(x + (i-st_idx)*step, y + y_off + pitch2y(T.cur_pitch[i], p_h));
+        if(offset >= T.cur_pitch.length) {
+            break;
         }
     }
-    ctx.stroke();
+
+    var in_line = false;
+    for(var i=st_idx; i<=end_idx; i++) {
+        if(T.cur_pitch[i]) {
+            if(!in_line) {
+                ctx.beginPath();
+                ctx.moveTo(x + (i-st_idx)*step, y + y_off + pitch2y(T.cur_pitch[i], p_h));
+                //ctx.moveTo(x + offset*step, y + y_off + pitch2y(T.cur_pitch[st_idx+offset], p_h));
+                in_line = true;
+            }
+            else {
+                ctx.lineTo(x + (i-st_idx)*step, y + y_off + pitch2y(T.cur_pitch[i], p_h));
+            }
+        }
+        else {
+            if(in_line) {
+                ctx.stroke();
+            }
+            in_line = false;
+        }
+    }
+    if(in_line) {
+        ctx.stroke();
+    }
 }
 
 function pitch2y(p, p_h) {
@@ -617,6 +723,25 @@ window.onhashchange = () => {
         T.cur_doc = undefined;
     }
     render();
+}
+
+function tick() {
+    T.ticking = true;
+
+    if(T.audio_el && T.audio_el.$el) {
+        var t = T.audio_el.$el.currentTime;
+        //if(!T.cur_t || Math.abs(t-T.cur_t)>1/50) {
+        if(!T.cur_t || t != T.cur_t) {
+            T.cur_t = t;
+            blit_graph_can();
+        }
+    }
+
+    window.requestAnimationFrame(tick);
+}
+
+if(!T.ticking) {
+    tick();
 }
 
 render();

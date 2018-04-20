@@ -301,7 +301,7 @@ function render_doc(root) {
         }
     });
 
-    //render_doc_graph(root);    
+    render_doc_graph(root);    
 
     var para_el = new PAL.Element("div", {
         id: "payload-para",
@@ -310,6 +310,13 @@ function render_doc(root) {
     });
 
     render_doc_paragraph(para_el);
+}
+
+function render_doc_graph(root) {
+    T.graph_can = new PAL.Element("canvas", {
+        parent: root,
+        id: "graph"
+    });
 }
 
 function render_doc_paragraph(root) {
@@ -386,9 +393,45 @@ function render() {
     
     root.show();
 
-    if(T.cur_doc && T.wd_can) {
-        blit_wd_can();
+    if(T.cur_doc) {
+        if(T.wd_can) {
+            blit_wd_can();
+        }
+        if(T.graph_can) {
+            blit_graph_can();
+        }
     }
+}
+
+function blit_graph_can() {
+    var $can = T.graph_can.$el;
+
+    var w = document.body.clientWidth/2;
+    var h = document.body.clientHeight;
+
+    $can.setAttribute('width', w);
+    $can.setAttribute('height', h);
+
+    var ctx = $can.getContext('2d');
+
+    var start = 0;
+    var end = 5;
+
+    render_waveform(ctx, {start:start, end:end}, {left: 0, top: 0, width: w, height: h}, h/2);
+
+    // Draw in-view words, in-time
+    T.cur_align.words.forEach((wd) => {
+        if(!wd.end || wd.start >= end || wd.end <= start) {
+            return;
+        }
+
+        var x = w * ((wd.start - start) / (end-start));
+
+        ctx.fillStyle = "#263238";
+        ctx.font = "14pt Arial";
+        ctx.fillText(wd.word, x, h/2)
+        
+    })
 }
 
 function blit_wd_can() {
@@ -427,13 +470,11 @@ function blit_wd_can() {
     });
 }
 
-function render_waveform(ctx, w, rect) {
+function render_waveform(ctx, w, rect, p_h) {
     if(!w.end) {
         return;
     }
     
-    ctx.fillStyle = 'cyan';
-
     // // Draw waveform
     var st_idx = Math.floor(w.start * 100);
     var end_idx = Math.ceil(w.end * 100);
@@ -441,7 +482,7 @@ function render_waveform(ctx, w, rect) {
 
     var x = rect.left;
     var y = rect.top;
-    var y_off = 5;
+    var y_off = 0;
 
     // ctx.beginPath();
     // ctx.moveTo(x, y + y_off + 30 - data.rms[st_idx]*30);
@@ -455,28 +496,30 @@ function render_waveform(ctx, w, rect) {
     
     ctx.beginPath();
     // Draw pitch trace
-    ctx.strokeStyle = "magenta";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#449A88";//#607D8B";
+    ctx.lineWidth = 1;
 
     var offset = 0;
     while(!T.cur_pitch[st_idx+offset]) {
         offset += 1
     }
 
-    ctx.moveTo(x + offset*step, y + y_off + pitch2y(T.cur_pitch[st_idx+offset]));
+    ctx.moveTo(x + offset*step, y + y_off + pitch2y(T.cur_pitch[st_idx+offset], p_h));
     for(var i=st_idx+1; i<=end_idx; i++) {
         if(T.cur_pitch[i]) {
-            ctx.lineTo(x + (i-st_idx)*step, y + y_off + pitch2y(T.cur_pitch[i]));
+            ctx.lineTo(x + (i-st_idx)*step, y + y_off + pitch2y(T.cur_pitch[i], p_h));
         }
     }
     ctx.stroke();
 }
 
-function pitch2y(p) {
+function pitch2y(p, p_h) {
+    p_h = p_h || 40;
+    
     if(p == 0) {
         return p;
     }
-    return 40 - (p - T.MIN_PITCH) * T.PITCH_SC;
+    return p_h - (p - T.MIN_PITCH) * T.PITCH_SC * p_h;
 }
     
 
@@ -505,7 +548,7 @@ function doc_update() {
                     }
                 });
                 T.MIN_PITCH = min_pitch;
-                T.PITCH_SC = 40 / (max_pitch - min_pitch);
+                T.PITCH_SC = 1 / (max_pitch - min_pitch);
                 
                 render();
             });
@@ -565,3 +608,4 @@ window.onhashchange = () => {
 
 render();
 
+window.onresize = render;

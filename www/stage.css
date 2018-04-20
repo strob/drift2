@@ -30,6 +30,8 @@ body {
     font-size: 14pt;
     border-right: 1px solid black;
     letter-spacing: 2;
+    width: 50%;
+    color: #263238;
 }
 
 #wdcan {
@@ -37,6 +39,18 @@ body {
     top: 0;
     left: 0;
     z-index: -1;
+}
+
+#graph {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    top: 0;
+    left: 50%;
+}
+
+audio {
+    width: 100%;
 }
 
 /* /\* NIGHT MODE! *\/ */

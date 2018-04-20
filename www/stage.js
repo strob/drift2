@@ -15,6 +15,9 @@ if(!T.docs) {
         render();
     });
 }
+if(!T.cur_zoom) {
+    T.cur_zoom = 0.1;
+}
 
 T.transpastes = T.transpastes||{};
 
@@ -317,6 +320,8 @@ function render_doc(root) {
         parent: root,
         events: {
             onmousedown: function(ev) {
+                ev.preventDefault();
+                
                 var px = (ev.clientX - this.offsetLeft) / this.clientWidth;
                 T.cur_zoom = (1-px);
                 blit_graph_can();
@@ -427,6 +432,31 @@ function render_doc_paragraph(root) {
         id: "wdcan",
         parent: root
     });
+
+    // ...and a little underline here
+    T.underline_el = new PAL.Element("div", {
+        id: "underline",
+        parent: root
+    });
+}
+
+function place_underline() {
+    // see if we have a word intersection
+
+    T.cur_align.words
+        .forEach((wd, wd_idx) => {
+            if(wd.start <= T.cur_t && wd.end >= T.cur_t) {
+
+                var pos = T.wd_pos[wd_idx];
+                if(pos) {
+
+                    T.underline_el.$el.style.left = pos.left + pos.width/2 - 4;
+                    T.underline_el.$el.style.top = pos.top + 15;
+                    
+                }
+                
+            }
+        })
 }
 
 function render() {
@@ -529,8 +559,8 @@ function blit_graph_can() {
     })
 
     // ...Finally, a playhead
-    //ctx.fillStyle = "#E85C41";
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "#E85C41";
+    //ctx.fillStyle = "red";
     ctx.fillRect(w * ((cur_t-start)/(end-start)), 0, 1, graph_end_y);
 }
 
@@ -538,7 +568,7 @@ function blit_wd_can() {
     var $can = T.wd_can.$el;
 
     // Compute word positions
-    var wd_pos = {};
+    T.wd_pos = {};
     
     var wd_right_max = 0;
     var wd_top_max = 0;
@@ -551,7 +581,7 @@ function blit_wd_can() {
                 top: T.wd_els[wd_idx].$el.offsetTop
             };
             
-            wd_pos[wd_idx] = pos;
+            T.wd_pos[wd_idx] = pos;
 
             wd_right_max = Math.max(pos.left+pos.width, wd_right_max);
             wd_top_max = Math.max(pos.top, wd_top_max);
@@ -564,8 +594,8 @@ function blit_wd_can() {
     var ctx = $can.getContext('2d');
 
     T.cur_align.words.forEach(function(w, w_idx) {
-        if(w_idx in wd_pos) {
-            render_waveform(ctx, w, wd_pos[w_idx]);
+        if(w_idx in T.wd_pos) {
+            render_waveform(ctx, w, T.wd_pos[w_idx]);
         }
     });
 }
@@ -582,7 +612,7 @@ function render_waveform(ctx, w, rect, p_h) {
 
     var x = rect.left;
     var y = rect.top;
-    var y_off = 0;
+    var y_off = 2;
 
     // ctx.beginPath();
     // ctx.moveTo(x, y + y_off + 30 - data.rms[st_idx]*30);
@@ -734,6 +764,8 @@ function tick() {
         if(!T.cur_t || t != T.cur_t) {
             T.cur_t = t;
             blit_graph_can();
+
+            place_underline();
         }
     }
 

@@ -30,7 +30,7 @@ body {
     font-size: 14pt;
     /* border-right: 1px solid black; */
     letter-spacing: 2;
-    width: 50%;
+    width: 45%;
     color: #263238;
 }
 
@@ -73,8 +73,13 @@ audio {
     font-size: 8pt;
 }
 
-/* /\* NIGHT MODE! *\/ */
-/* body { */
-/*     background-color: black; */
-/*     color: rgb(0,255,0); */
-/* } */
+#underline {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #E85C41;
+    position: absolute;
+
+    transition-property: left, top;
+    transition-duration: 0.05s;
+}

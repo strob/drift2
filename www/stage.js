@@ -430,6 +430,19 @@ function blit_graph_can() {
         ctx.fillStyle = "#263238";
         ctx.font = "14pt Arial";
         ctx.fillText(wd.word, x, h/2)
+
+        wd.phones.forEach((ph) => {
+
+            ctx.fillStyle = "#B0BEC5";
+            ctx.font = "10pt Arial";
+            ctx.fillText(ph.phone.split("_")[0], x, h/2+20)
+
+            var ph_w = w * (ph.duration / (end-start));
+
+            ctx.fillRect(x, h/2+5, ph_w, 2);
+            
+            x += ph_w;
+        });
         
     })
 }
@@ -496,7 +509,7 @@ function render_waveform(ctx, w, rect, p_h) {
     
     ctx.beginPath();
     // Draw pitch trace
-    ctx.strokeStyle = "#449A88";//#607D8B";
+    ctx.strokeStyle = "#449A88";
     ctx.lineWidth = 1;
 
     var offset = 0;

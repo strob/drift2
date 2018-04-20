@@ -1,1 +1,2 @@
 scikits.audiolab
+pyinstaller

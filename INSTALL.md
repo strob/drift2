@@ -1,6 +1,6 @@
 
 brew install libsndfile
-pip install --user -r requirements.txt
+pip install --user -U -r requirements.txt
 
 git submodule init
 git submodule update

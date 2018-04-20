@@ -1,11 +1,3 @@
-import json
-import os
-import random
-import tempfile
-import subprocess
-
-from drift2.util import Get, GetArgs
-
 def create(cmd):
     docid = cmd['id']
     del cmd['id']
@@ -55,7 +47,7 @@ def pitch(cmd):
         subprocess.call([get_ffmpeg(),
                          '-y',
                          '-loglevel', 'panic',
-                         '-i', os.path.join(get_local(), '_attachments', meta['path']),
+                         '-i', os.path.join(get_attachpath(), meta['path']),
                          '-ar', '8000',
                          '-ac', '1',
                          wav_fp.name])
@@ -92,8 +84,8 @@ def align(cmd):
 
     meta = get_meta(cmd['id'])
 
-    media = os.path.join(get_local(), '_attachments', meta['path'])
-    transcript = os.path.join(get_local(), '_attachments', meta['transcript'])
+    media = os.path.join(get_attachpath(), meta['path'])
+    transcript = os.path.join(get_attachpath(), meta['transcript'])
     
     with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as fp:
         # XXX: Check if Gentle is running
@@ -126,15 +118,14 @@ def align(cmd):
 
 root.putChild("_align", PostJson(align, async=True))
 
-import csv
 def dl_csv(id=None):
     docid = id
     meta = get_meta(docid)
 
-    p_path = os.path.join(get_local(), '_attachments', meta['pitch'])
+    p_path = os.path.join(get_attachpath(), meta['pitch'])
     pitch = [float(X.split()[1]) for X in open(p_path) if len(X.split())>2]
 
-    a_path = os.path.join(get_local(), '_attachments', meta['align'])    
+    a_path = os.path.join(get_attachpath(), meta['align'])    
     align = json.load(open(a_path))
 
     words = align['words']

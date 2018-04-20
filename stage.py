@@ -64,6 +64,9 @@ def pitch(cmd):
             subprocess.call([get_calc_sbpca(),
                              wav_fp.name, pitch_fp.name])
 
+    if len(open(pitch_fp.name).read().strip()) == 0:
+        return {"error": "Pitch computation failed"}
+
     # XXX: frozen attachdir
     pitchhash = attach(pitch_fp.name)
 

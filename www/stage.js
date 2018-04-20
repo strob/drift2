@@ -206,7 +206,12 @@ function render_doclist(root) {
 function render_paste_transcript(root, docid) {
     T.transpastes[docid] = new PAL.Element("textarea", {
         parent: root,
-        id: 'tscript-' + docid
+        id: 'tscript-' + docid,
+        events: {
+            onclick: (ev) => {
+                ev.stopPropagation();
+            }
+        }
     });
 
     new PAL.Element("button", {

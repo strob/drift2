@@ -347,7 +347,8 @@ function render_doc(root, head) {
         text: "Download csv",
         attrs: {
             href: "/_dl.csv?id=" + T.cur_doc,
-            target: "_blank"
+            target: "_blank",
+            download: meta.title + "-drift.csv"
         }
     });
     

@@ -9,7 +9,7 @@ body {
 }
 
 #head {
-    height: 30px;
+    height: 40px;
     background-color: black;
     color: white;
     padding: 5px;
@@ -28,12 +28,11 @@ body {
 #head audio {
     height: 100%;
     width: 500px;
-    position: relative;
-    top: 5px;
     margin-right: 10px;
 }
 #csv-dl {
     cursor: pointer;
+    float: right;
 }
 
 .listitem {
@@ -99,7 +98,9 @@ body {
     width: 45%;
     color: #263238;
 
-    height: calc(100vh - 30px);
+    top: 10px;
+
+    height: calc(100vh - 60px);
     overflow-y: auto;
 }
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -9,13 +9,13 @@ import tarfile
 import tempfile
 import threading
 from twisted.internet import reactor
-import urllib2
 import webbrowser
 import sys
 
-from drift2.__version__ import __version__
+#from drift2.__version__ import __version__
 #from drift2.paths import get_resource
-import serve
+#import serve
+__version__="2.0"
 
 def get_open_port(desired=0):
     import socket
@@ -32,8 +32,8 @@ def get_open_port(desired=0):
 PORT = get_open_port(9898)
 
 # Start a thread for the web server.
-webthread = threading.Thread(target=serve.serve, args=(PORT,))
-webthread.start()
+# webthread = threading.Thread(target=serve.serve, args=(PORT,))
+# webthread.start()
 
 def open_browser():
     webbrowser.open("http://localhost:%d/" % (PORT))
@@ -78,6 +78,6 @@ w.activateWindow()
  
 app.exec_()
 
-logging.info("Waiting for server to quit.")
-reactor.callFromThread(reactor.stop)
-webthread.join()
+# logging.info("Waiting for server to quit.")
+# reactor.callFromThread(reactor.stop)
+# webthread.join()

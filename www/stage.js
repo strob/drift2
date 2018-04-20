@@ -37,9 +37,14 @@ if(!T.next_id) {
 }
 
 function render_header(root) {
-    new PAL.Element("h2", {
-        parent: root,
+    var head = new PAL.Element("div", {
         id: 'head',
+        parent: root
+    });
+    
+    new PAL.Element("div", {
+        parent: head,
+        id: 'logo',
         text: "drift2",
         events: {
             onclick: () => {
@@ -47,6 +52,8 @@ function render_header(root) {
             }
         }
     });
+
+    return head;
 }
 
 function render_uploader(root) {
@@ -282,7 +289,7 @@ function render_paste_transcript(root, docid) {
     });
 }
 
-function render_doc(root) {
+function render_doc(root, head) {
     if(!T.cur_db.loaded) {
         new PAL.Element("div", {
             parent: root,
@@ -292,17 +299,24 @@ function render_doc(root) {
     }
 
     var meta = T.cur_db.get("meta");
-    new PAL.Element("h3", {
+    new PAL.Element("div", {
         id: "h3",
-        parent: root,
+        parent: head,
         text: meta.title
     });
 
     if(!T.doc_ready) {
+        
+        var txt = "Running computations...";
+        
+        if(!meta.align) {
+            txt = "Alignment in progress..."    
+        }
+        
         new PAL.Element("div", {
             id: "not-ready",
             parent: root,
-            text: 'not yet ready...'
+            text: txt
         });
 
         return;
@@ -320,12 +334,23 @@ function render_doc(root) {
 
     T.audio_el = new PAL.Element("audio", {
         id: "audio",
-        parent: root,
+        parent: head,
         attrs: {
             controls: true,
             src: "/media/" + meta.path
         }
     });
+
+    new PAL.Element("a", {
+        id: "csv-dl",
+        parent: head,
+        text: "Download csv",
+        attrs: {
+            href: "/_dl.csv?id=" + T.cur_doc,
+            target: "_blank"
+        }
+    });
+    
 
     render_doc_graph(root);    
 
@@ -488,10 +513,10 @@ function place_underline() {
 function render() {
     var root = new PAL.Root();
 
-    render_header(root);
+    var head = render_header(root);
 
     if(T.cur_doc) {
-        render_doc(root);
+        render_doc(root, head);
     }
     else {
         render_uploader(root);

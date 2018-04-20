@@ -1,9 +1,10 @@
+import json
 import os
 import random
 import tempfile
 import subprocess
 
-from drift2.util import Get
+from drift2.util import Get, GetArgs
 
 def create(cmd):
     docid = cmd['id']
@@ -124,3 +125,51 @@ def align(cmd):
     
 
 root.putChild("_align", PostJson(align, async=True))
+
+import csv
+def dl_csv(id=None):
+    docid = id
+    meta = get_meta(docid)
+
+    p_path = os.path.join(get_local(), '_attachments', meta['pitch'])
+    pitch = [float(X.split()[1]) for X in open(p_path) if len(X.split())>2]
+
+    a_path = os.path.join(get_local(), '_attachments', meta['align'])    
+    align = json.load(open(a_path))
+
+    words = align['words']
+
+    with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as fp:
+        w = csv.writer(fp)
+
+        w.writerow(['time (s)', 'pitch (hz)', 'word', 'phoneme'])
+
+        for idx, pitch in enumerate(pitch):
+            t = idx / 100.0
+
+            wd_txt = None
+            ph_txt = None
+
+            for wd_idx, wd in enumerate(words):
+                if wd.get('start') is None:
+                    continue
+                
+                if wd['start'] <= t and wd['end'] >= t:
+                    wd_txt = wd['word']
+
+                    # find phone
+                    cur_t = wd['start']
+                    for phone in wd['phones']:
+                        if cur_t + phone['duration'] >= t:
+                            ph_txt = phone['phone']
+                            break
+                        cur_t += phone['duration']
+
+                    break
+
+            row = [t, pitch, wd_txt, ph_txt]
+            w.writerow(row)
+            
+    return fp.name
+
+root.putChild('_dl.csv', GetArgs(dl_csv, fileout=True))

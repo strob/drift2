@@ -4,6 +4,36 @@
 body {
     font-family: Arial, sans;
     background-color: #ECEFF1;
+    margin: 0;
+    padding: 0;
+}
+
+#head {
+    height: 30px;
+    background-color: black;
+    color: white;
+    padding: 5px;
+}
+#head div {
+    float: left;
+    margin-right: 20px;
+}
+
+#logo {
+    font-size: 14pt;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#head audio {
+    height: 100%;
+    width: 500px;
+    position: relative;
+    top: 5px;
+    margin-right: 10px;
+}
+#csv-dl {
+    cursor: pointer;
 }
 
 .listitem {
@@ -47,6 +77,7 @@ body {
 .listitem .title {
     text-align: center;
     font-weight: bold;
+    margin-top: 15px;
 }
 .listitem.ready {
     border-radius: 8px;
@@ -55,17 +86,21 @@ body {
 .listitem.ready .title {
     text-align: center;
     font-weight: bold;
-    margin-top: 15px;
 }
 
 .paragraph {
     position: relative;
     line-height: 2em;
     font-size: 14pt;
-    /* border-right: 1px solid black; */
+
+    padding: 10px;
+    
     letter-spacing: 2;
     width: 45%;
     color: #263238;
+
+    height: calc(100vh - 30px);
+    overflow-y: auto;
 }
 
 #wdcan {
@@ -76,18 +111,14 @@ body {
 }
 
 #graph {
-    position: fixed;
+    position: absolute;
     z-index: 2;
     top: 25%;
     left: 50%;
 }
 
-audio {
-    width: 100%;
-}
-
 #zoom {
-    position: fixed;
+    position: absolute;
     right: 20px;
     bottom: 20px;
     width: 200px;
@@ -116,4 +147,9 @@ audio {
 
     transition-property: left, top;
     transition-duration: 0.05s;
+}
+
+a {
+    color: white;
+    text-decoration: underline;
 }

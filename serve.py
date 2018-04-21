@@ -9,7 +9,6 @@ import random
 import tempfile
 import subprocess
 
-
 import glob
 import os
 
@@ -56,4 +55,6 @@ def serve(port=9898):
     drift2.serve('stage.py', globals(), root=root)
 
 if __name__=='__main__':
-    serve()
+    import sys
+    port = 9898 if len(sys.argv) < 2 else int(sys.argv[1])
+    serve(port)

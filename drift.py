@@ -5,16 +5,11 @@ from PyQt5.QtCore import pyqtSignal
 
 import logging
 import os
-import tarfile
-import tempfile
+import subprocess
 import threading
-from twisted.internet import reactor
 import webbrowser
 import sys
 
-#from drift2.__version__ import __version__
-#from drift2.paths import get_resource
-#import serve
 __version__="2.0"
 
 def get_open_port(desired=0):
@@ -31,15 +26,42 @@ def get_open_port(desired=0):
 
 PORT = get_open_port(9898)
 
+def get_binary(name):
+    if hasattr(sys, "frozen"):
+        return os.path.abspath(os.path.join(getattr(sys, '_MEIPASS', ''), os.pardir, 'Resources', name))
+
+    return name
+
+def get_cwd():
+    if hasattr(sys, "frozen"):
+        return os.path.abspath(os.path.join(getattr(sys, '_MEIPASS', ''), os.pardir, 'Resources'))
+
+    return ''
+
+S_PROC = None
+
+def serve(port):
+    global S_PROC
+    devnull = open(os.devnull, 'w')
+    S_PROC = subprocess.Popen(['./serve', str(port)],
+                              cwd=os.path.join(get_cwd(), 'serve-dist'),
+                              stdout=devnull,
+                              stderr=devnull)
+
+gentle_running = get_open_port(8765) != 8765
+
 # Start a thread for the web server.
-# webthread = threading.Thread(target=serve.serve, args=(PORT,))
-# webthread.start()
+webthread = threading.Thread(target=serve, args=(PORT,))
+webthread.start()
 
 def open_browser():
     webbrowser.open("http://localhost:%d/" % (PORT))
 
 def open_about():
     webbrowser.open("https://rmozone.com/drift")
+    
+def open_gentle():
+    webbrowser.open("https://lowerquality.com/gentle")
 
 app = QtWidgets.QApplication(sys.argv)
 
@@ -58,10 +80,20 @@ txt = QtWidgets.QLabel('''Drift v%s
 Words and intonation.''' % (__version__))
 layout.addWidget(txt)
 
-btn = QtWidgets.QPushButton('Open in browser')
-btn.setStyleSheet("font-weight: bold;")
-layout.addWidget(btn)
-btn.clicked.connect(open_browser)
+if not gentle_running:
+    gtxt = QtWidgets.QLabel('''Gentle is not running. 
+Please install and run Gentle before running Drift.''')
+    layout.addWidget(gtxt)
+
+    gbtn = QtWidgets.QPushButton('Download Gentle')
+    gbtn.setStyleSheet("font-weight: bold;")
+    layout.addWidget(gbtn)
+    gbtn.clicked.connect(open_gentle)
+else:    
+    btn = QtWidgets.QPushButton('Open in browser')
+    btn.setStyleSheet("font-weight: bold;")
+    layout.addWidget(btn)
+    btn.clicked.connect(open_browser)
 
 abt = QtWidgets.QPushButton('About Drift')
 layout.addWidget(abt)
@@ -78,6 +110,6 @@ w.activateWindow()
  
 app.exec_()
 
-# logging.info("Waiting for server to quit.")
-# reactor.callFromThread(reactor.stop)
-# webthread.join()
+logging.info("Waiting for server to quit.")
+S_PROC.kill()
+S_PROC.wait()

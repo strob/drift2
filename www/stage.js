@@ -836,6 +836,21 @@ function tick() {
     window.requestAnimationFrame(tick);
 }
 
+window.onkeydown = (ev) => {
+    if(T.audio_el && ev.key == ' ') {
+        var $a = T.audio_el.$el;
+        if($a.paused) {
+            $a.play();
+        }
+        else {
+            $a.pause();
+        }
+    }
+    else {
+        console.log("key", ev.key);
+    }
+}
+
 render();
 
 window.onresize = render;

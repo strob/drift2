@@ -28,7 +28,7 @@ def get_attachpath():
     return os.path.join(get_local(), '_attachments')
 def get_calc_sbpca():
     if BUNDLE:
-        return './SAaC'
+        return './SAcC'
     return './calc_sbpca/python/SAcC.py'
 
 def get_meta(id):

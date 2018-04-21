@@ -61,7 +61,7 @@ def pitch(cmd):
         return {"error": "Pitch computation failed"}
 
     # XXX: frozen attachdir
-    pitchhash = attach(pitch_fp.name)
+    pitchhash = attach(pitch_fp.name, get_attachpath())
 
     bschange(dbs[docid], {
         "type": "set",
@@ -104,7 +104,7 @@ def align(cmd):
                 '-X', 'POST',
                 '-F', 'audio=@%s' % (media)] + t_opts + [url])
 
-    alignhash = attach(fp.name)
+    alignhash = attach(fp.name, get_attachpath())
 
     bschange(dbs[cmd['id']], {
         "type": "set",

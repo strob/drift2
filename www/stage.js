@@ -415,7 +415,16 @@ function render_doc(root, head) {
 function render_doc_graph(root) {
     T.graph_can = new PAL.Element("canvas", {
         parent: root,
-        id: "graph"
+        id: "graph",
+        events: {
+            onclick: function(ev) {
+                // Click to seek
+                var px = (ev.clientX - this.offsetLeft) / this.offsetWidth;
+                console.log("px", px);
+
+                T.audio_el.$el.currentTime = T.graph_start + px*(T.graph_end - T.graph_start);
+            }
+        }
     });
 }
 
@@ -556,6 +565,8 @@ function blit_graph_can() {
 
     var start = Math.max(0, cur_t - nsecs/2);
     var end = start+nsecs;
+    T.graph_start = start;
+    T.graph_end = end;
 
     render_waveform(ctx, {start:start, end:end}, {left: 0, top: 0, width: w, height: h}, h);
 
@@ -852,5 +863,20 @@ window.onkeydown = (ev) => {
 }
 
 render();
+
+window.onkeydown = (ev) => {
+    if(ev.key == ' ') {
+        ev.preventDefault();
+
+        if(T.audio_el && T.audio_el.$el) {
+            if(T.audio_el.$el.paused) {
+                T.audio_el.$el.play();
+            }
+            else {
+                T.audio_el.$el.pause();                
+            }
+        }
+    }
+}
 
 window.onresize = render;

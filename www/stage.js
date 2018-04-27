@@ -180,6 +180,26 @@ function render_doclist(root) {
             });
 
             new PAL.Element("div", {
+                id: "del-" + doc.id,
+                classes: ['delete'],
+                text: 'delete',
+                events: {
+                    onclick: (ev) => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+
+                        FARM.post_json("/_delete", {id: doc.id}, (ret) => {
+                            delete T.docs[ret.id];
+                            render();
+                        });
+                        
+                        console.log("delete", doc.id);
+                    }
+                },
+                parent: docel
+            });
+
+            new PAL.Element("div", {
                 id: "title-" + doc.id,
                 classes: ['title'],
                 text: doc.title,
@@ -857,26 +877,8 @@ window.onkeydown = (ev) => {
             $a.pause();
         }
     }
-    else {
-        console.log("key", ev.key);
-    }
 }
 
 render();
-
-window.onkeydown = (ev) => {
-    if(ev.key == ' ') {
-        ev.preventDefault();
-
-        if(T.audio_el && T.audio_el.$el) {
-            if(T.audio_el.$el.paused) {
-                T.audio_el.$el.play();
-            }
-            else {
-                T.audio_el.$el.pause();                
-            }
-        }
-    }
-}
 
 window.onresize = render;

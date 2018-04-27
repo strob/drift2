@@ -37,6 +37,17 @@ def update(cmd):
 
 root.putChild("_update", PostJson(update))
 
+def delete(cmd):
+    docid = cmd['id']
+
+    del dbs[docid]
+    os.rename(os.path.join(get_local(), 'doc', docid), os.path.join(get_local(), 'doc', ".DELETED-%s" % (docid)))
+    
+    return {"id": docid, "delete": True}
+
+root.putChild("_delete", PostJson(delete))
+
+
 def pitch(cmd):
     docid = cmd['id']
 

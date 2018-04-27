@@ -155,3 +155,16 @@ a {
     color: white;
     text-decoration: underline;
 }
+
+.delete {
+    text-align: right;
+    color: red;
+    visibility: hidden;
+    margin: 10px 15px;
+}
+.delete:hover {
+    text-decoration: underline;
+}
+.listitem:hover .delete {
+    visibility: visible;
+}
